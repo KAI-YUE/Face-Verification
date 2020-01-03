@@ -1,0 +1,11 @@
+{
+    "orientation_range":    20,
+    "angle_threshold":      15,
+    "face_size":            [100, 100],
+    
+    "haar_face_param_dir":  "./docs/haarcascade_frontalface_default.xml",
+    "haar_eyes_param_dir":  "./docs/haarcascade_eye.xml",
+
+    "model_dir":            "./checkpoints",
+    "save_interval":        1
+}
