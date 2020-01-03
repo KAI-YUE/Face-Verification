@@ -103,7 +103,7 @@ def train_nn(src_dir):
             model_save(model, epoch, logger)
 
 if __name__ == '__main__':
-    src_dir = r"/media/kaiyue/D040A26540A251D0/webface"
+    src_dir = r"F:\DataSets\webface"
     train_nn(src_dir)
     # test()
     
