@@ -5,6 +5,7 @@ import numpy as np
 import logging
 import re
 import time 
+import json
 import matplotlib.pyplot as plt
 
 # My Libraries
@@ -15,6 +16,9 @@ class FaceDataset(object):
         self.face_size = 100
         self.face_area = self.face_size**2
         
+        self.X = []
+        self.Y = []
+
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.ERROR)
@@ -161,7 +165,19 @@ class FaceDataset(object):
         #        break
             
         print("== {:.2f} min has elasped ==".format((time.time()-start)/60))
-        
+    
+    
+    def save(self, dst_dir):
+        with open(dst_dir, 'w') as fp:
+            json.dump(dict(X=self.X.tolist(), Y=self.Y.tolist()), fp, indent=4)
+
+    def load(self, src_dir):
+        with open(src_dir, 'r') as fp:
+            a_set = json.load(fp)
+
+        self.X = np.asarray(a_set['X'])
+        self.Y = np.asarray(a_set['Y'])
+
     @staticmethod
     def sqi_norm(img):
         img_out = np.zeros_like(img)

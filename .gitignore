@@ -23,4 +23,5 @@ checkpoints/
 
 # docs
 report/
+test_data.json
 samples.json

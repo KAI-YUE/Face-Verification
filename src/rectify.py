@@ -223,8 +223,8 @@ default_config = \
     "orientation_range":    20,
     "angle_threshold":      15,
     
-    "haar_face_param_dir":  "../docs/haarcascade_frontalface_default.xml",
-    "haar_eyes_param_dir":  "../docs/haarcascade_eye.xml"
+    "haar_face_param_dir":  "./docs/haarcascade_frontalface_default.xml",
+    "haar_eyes_param_dir":  "./docs/haarcascade_eye.xml"
 }
 
 if __name__ == "__main__":
