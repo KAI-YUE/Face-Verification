@@ -12,6 +12,15 @@ from src.load_imglist import ImageList
 from src.utils import model_save
 from src.model import Net
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+fh = logging.FileHandler('log.txt', 'w')
+fh.setLevel(logging.INFO)
+sh = logging.StreamHandler()
+sh.setLevel(logging.INFO)
+logger.addHandler(fh)
+logger.addHandler(sh)
+
 def train_svm(X_train, Y_train, X_test, Y_test):
     # Cheat with sklearn svm
     from sklearn.svm import SVC
@@ -56,16 +65,6 @@ def train_nn(src_dir):
     import torch.optim as optim
     from torch.utils.data import Dataset
     from torch.utils.data import DataLoader
-    from sklearn.metrics import classification_report
-    
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    fh = logging.FileHandler('log.txt', 'w')
-    fh.setLevel(logging.INFO)
-    sh = logging.StreamHandler()
-    sh.setLevel(logging.INFO)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
 
     conf = loadConfig("config.json")
     L = nn.CrossEntropyLoss()
@@ -81,6 +80,7 @@ def train_nn(src_dir):
     # Start training
     for epoch in range(2):
         logger.info("epoch: {} ".format(epoch))
+        print("epoch: {} ".format(epoch))
         loss = 0
 
         for i, data in enumerate(train_loader):
@@ -97,11 +97,14 @@ def train_nn(src_dir):
 
             if (i % 500 == 0):
                 logger.info("loss: {}".format(loss.item()))
+                print("loss: {}".format(loss.item()))
 
         if epoch % conf.save_interval == 0:
             model_save(model, epoch, logger)
-        
 
-src_dir = r"F:\DataSets\webface"
-train_nn(src_dir)
+if __name__ == '__main__':
+    src_dir = r"/media/kaiyue/D040A26540A251D0/webface"
+    train_nn(src_dir)
+    # test()
+    
 

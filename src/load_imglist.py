@@ -19,12 +19,15 @@ class ImageList(data.Dataset):
         self.X = None
         self.Y = None
 
-        if "src_dir" in kwargs:
-            self.load(kwargs["src_dir"])
-            self.save_mat("samples.json")
-            print("Total samples:{}".format(self.X.shape[0]))
+        if os.path.exists("samples.json"):
+            self.load_mat("samples.json")
         else:
-            self.load_matrix("samples.json")
+            if "src_dir" in kwargs:
+                self.load(kwargs["src_dir"])
+                self.save_mat("samples.json")
+                print("Total samples:{}".format(self.X.shape[0]))
+            else:
+                self.load_mat("samples.json")
 
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger()

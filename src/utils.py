@@ -2,7 +2,6 @@
 import cv2
 import torch
 import numpy as np
-from PIL import Image
 
 # My Libraries
 from src.loadConfig import loadConfig
