@@ -98,7 +98,34 @@ class Rectifier(object):
         rectified_img = self._crop(img, scale_factor=1.05)
         rectified_img = cv2.resize(rectified_img, (100, 100))
         return rectified_img
+
+    def rectify_rgb(self, img, degree=0):
+        """
+        Rectify the img containing the face.
+        -----------------------------------
+        Args:
+            img,        the input rgb image.
+            degree,     degree to rotate. 
+        -----------------------------------    
+        Return:
+            the cropped rectified image.
+        """
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if degree:
+            img = self._rot_degree(img, degree)
         
+        scale_factor = 1.05
+        face_region = self.VJ_DetectFace(img, scale_factor)
+        if not (face_region is None):
+            [x, y, w, h] = face_region
+            
+            w_ = int(face_region[2] * scale_factor)
+            h_ = int(face_region[3] * scale_factor)         
+            x_ = int(max(face_region[0] - (w_ - face_region[2])/2, 0))
+            y_ = int(max(face_region[1] - (h_ - face_region[3])/2, 0))
+            
+        rectified_img = cv2.resize(img[y_:y_+h_, x_:x_+w_, :], (250, 250))
+        return rectified_img    
     
     def VJ_DetectFace(self, img, scale=1.1, neighborhood=3):
         """
@@ -184,7 +211,7 @@ class Rectifier(object):
     
     @staticmethod
     def _rot_degree(img, degree):
-        rows, cols = img.shape
+        rows, cols = img.shape[:2]
         center = (cols / 2, rows / 2)
         M = cv2.getRotationMatrix2D(center, degree, 1)
         dst = cv2.warpAffine(img, M, (cols, rows))
@@ -209,13 +236,6 @@ class Rectifier(object):
         else:           
             return img
             
-#        eyes = self.VJ_DetectEyes(img[y:y+h, x:x+w])
-        
-#        if not eyes is None:
-#            center_of_eyes = 1/2*(eyes[0, 0] + eyes[1, 0]) + \
-#                             1/4*(eyes[0, 2] + eyes[1, 2])
-#            x_ += max(int(center_of_eyes - w/2), 0)
-#            
         
 
 default_config = \

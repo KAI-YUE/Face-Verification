@@ -136,11 +136,6 @@ class FaceDataset(object):
                 os.mkdir(new_path)
             
             if files != []:
-        #        index = re.search(r"\d\d\d\d", root)
-        #        if not index is None:
-        #            j = int(root[index.start():index.end()])
-        #            if j >= 783:
-        #                break
                     
                 for file in files:
                     img = cv2.imread(os.path.join(root, file))
@@ -228,7 +223,7 @@ np.array([[3,  0.5],  #1:  3x3
 
 
 if __name__ == '__main__':
-    src_dir = r"F:\DataSets\LFW_all\toy"
+    src_dir = r"/LFW_all/toy"
     dataset = FaceDataset()
     a_set = dataset.load_matrix(src_dir)
     

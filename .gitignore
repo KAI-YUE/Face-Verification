@@ -19,9 +19,9 @@ venv/
 
 # model
 checkpoints/
-*.pth
 
 # docs
 report/
 test_data.json
-samples.json
+samples*.json
+*.pyc

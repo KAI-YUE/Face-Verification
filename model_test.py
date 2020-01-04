@@ -1,93 +1,59 @@
 ﻿import os
 import cv2
-import torch
+import time
 import numpy as np
 
-from src.model import Net
-from src.dataset import FaceDataset
+from model.net import Net
 from src.rectify import Rectifier
 
 if __name__ == "__main__":
     
-    data_dir = r'D:\YUE\Courses\ML\LFW'
-    model_dir = r'D:\Projects\Face-Verification\checkpoints\epoch1_.pth'
-
-    threshold = 0.5
-    load_from_scratch = False
+    data_dir = r'D:\YUE\Courses\ML\LFW_toy'
+    model_dir = r'.\checkpoints\model.dat'
+    outfile=open('D:\\outputfile.txt','w')
+    
+    threshold = 83.337
     R = Rectifier() 
-    fData = FaceDataset()
+    NN = Net()
+    NN.load(model_dir)
 
-    # Load data first
-    if load_from_scratch:
-        for root, dirs, files in os.walk(data_dir):
-            if files != []:
-                pair = []
-                for f in files:
-                    img = cv2.imread(os.path.join(root, f))  
-                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-                    # Rectify
-                    theta = R.estimate_rot(gray)
-                    dst = R.rectify(gray, theta)
-
-                    # Normalize
-                    dst = fData.sqi_norm(dst)
-
-                    min_value = np.min(dst)
-                    max_value = np.max(dst)
-
-                    pair.append((dst.flatten() - min_value)/(max_value - min_value))
-
-                fData.X.append(np.hstack(pair))   # Normalize the data to [0, 1]
-                                
-                if "mismatch" in root:
-                    fData.Y.append(0)
-                else:
-                    fData.Y.append(1)
-        
-        fData.X = np.asarray(fData.X)
-        fData.Y = np.asarray(fData.Y)
-        fData.save('test_data.json')
+    input_size = 250
+    input_area = input_size**2
     
-    else:
-        fData.load('test_data.json')
-
-    print("Load completed.")
-
-    model_dict = torch.load(model_dir)
-    model = Net()
-
-    device = torch.device("cuda")
-    model.load_state_dict(model_dict['nn_state_dict'])
-    model = model.to(device)
-
-    confusion_matrix = np.zeros((2, 2))
-
-    for i in range(fData.Y.shape[0]):
-        sample = torch.zeros((2, 1, fData.face_size, fData.face_size))
-        sample[0,0,:,:] = torch.from_numpy(fData.X[i, :fData.face_area].reshape((fData.face_size, fData.face_size)))
-        sample[1,0,:,:] = torch.from_numpy(fData.X[i, fData.face_area:].reshape((fData.face_size, fData.face_size)))
-
-        pred = model(sample.to(device)).cpu().detach().numpy()
-        similarity = pred[0] @ pred[1] 
-        norm1 = np.linalg.norm(pred[0])
-        norm2 = np.linalg.norm(pred[1])
-        if not (norm1 < 1e-8 or norm2 < 1e-8):
-            similarity /= norm1*norm2
-
-        if similarity > threshold:
-            if fData.Y[i] == 1:
-                confusion_matrix[0, 0] += 1
+    start = time.time()
+    dist = []
+    for root, dirs, files in os.walk(data_dir):
+        if files != []:
+            pair = []
+            sample = np.zeros((2,input_size,input_size,3))
+            for f in files:
+                img = cv2.imread(os.path.join(root, f))  
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                
+                # Rectify
+                theta = R.estimate_rot(gray)
+                dst = R.rectify_rgb(img, theta).astype(np.float)
+                
+                dst = cv2.resize(dst, (250, 250))
+                dst -= np.array([103.939, 116.779, 123.68]).reshape(1,1,3)
+                pair.append(dst)
+                
+            img1 = pair[0]
+            img2 = pair[1]
+            sample[0,:,:,:] = img1.reshape((1,input_size,input_size,3))
+            sample[1,:,:,:] = img2.reshape((1,input_size,input_size,3))
+            pred = NN.netforward(sample)
+            
+            dist.append(np.sqrt(np.sum((pred[0]-pred[1])**2)))
+            
+            if dist[-1]<threshold:
+                pred_label = 1
+                outfile.write('1\n')
             else:
-                confusion_matrix[0, 1] += 1
-        else:
-            if fData.Y[i] == 1:
-                confusion_matrix[1, 0] += 1
-            else:
-                confusion_matrix[1, 1] += 1
-
-        # print(similarity)
-
-    
-    print(confusion_matrix)
-    print("ACC: {}".format((confusion_matrix[0,0] + confusion_matrix[1, 1])/np.sum(confusion_matrix)))
+                pred_label = 0
+                outfile.write('0\n')
+            
+            print("distance:{:.3f}, pred:{}".format(dist[-1], pred_label))
+                  
+    print("{:.3f} h has elapsed.".format((time.time()-start)/3600))
+    outfile.close()
